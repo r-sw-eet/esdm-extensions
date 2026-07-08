@@ -1,0 +1,156 @@
+{
+    "domain": "todo",
+    "contexts": [
+        {
+            "name": "tasks",
+            "commands": [
+                {
+                    "name": "add-task",
+                    "lifecycle": "create",
+                    "path": "/tasks/add-task",
+                    "fields": [
+                        {
+                            "name": "title",
+                            "type": "string",
+                            "feel": null
+                        }
+                    ],
+                    "guard": null
+                },
+                {
+                    "name": "rename-task",
+                    "lifecycle": "mutate",
+                    "path": "/tasks/rename-task",
+                    "fields": [
+                        {
+                            "name": "id",
+                            "type": "string",
+                            "feel": null
+                        },
+                        {
+                            "name": "title",
+                            "type": "string",
+                            "feel": null
+                        }
+                    ],
+                    "guard": {
+                        "from": [
+                            "open"
+                        ],
+                        "when": null
+                    }
+                },
+                {
+                    "name": "set-completion",
+                    "lifecycle": "mutate",
+                    "path": "/tasks/set-completion",
+                    "fields": [
+                        {
+                            "name": "id",
+                            "type": "string",
+                            "feel": null
+                        },
+                        {
+                            "name": "completed",
+                            "type": "boolean",
+                            "feel": null
+                        }
+                    ],
+                    "guard": {
+                        "from": [
+                            "open"
+                        ],
+                        "when": null
+                    }
+                },
+                {
+                    "name": "delete-task",
+                    "lifecycle": "delete",
+                    "path": "/tasks/delete-task",
+                    "fields": [
+                        {
+                            "name": "id",
+                            "type": "string",
+                            "feel": null
+                        }
+                    ],
+                    "guard": {
+                        "from": [
+                            "open"
+                        ],
+                        "when": null
+                    }
+                }
+            ],
+            "queries": [
+                {
+                    "name": "list-deleted-tasks",
+                    "path": "/tasks/list-deleted-tasks",
+                    "kind": "list",
+                    "params": [],
+                    "readModel": "deleted-tasks"
+                },
+                {
+                    "name": "list-tasks",
+                    "path": "/tasks/list-tasks",
+                    "kind": "list",
+                    "params": [],
+                    "readModel": "tasks"
+                },
+                {
+                    "name": "get-task",
+                    "path": "/tasks/get-task",
+                    "kind": "get",
+                    "params": [
+                        {
+                            "name": "id",
+                            "type": "string"
+                        }
+                    ],
+                    "readModel": "tasks"
+                }
+            ],
+            "readModels": [
+                {
+                    "name": "tasks",
+                    "columns": [
+                        {
+                            "name": "id",
+                            "type": "string",
+                            "identity": false
+                        },
+                        {
+                            "name": "title",
+                            "type": "string",
+                            "identity": false
+                        },
+                        {
+                            "name": "completed",
+                            "type": "boolean",
+                            "identity": false
+                        }
+                    ],
+                    "listPath": "/tasks/list-tasks",
+                    "stateMachine": null
+                },
+                {
+                    "name": "deleted-tasks",
+                    "columns": [
+                        {
+                            "name": "id",
+                            "type": "string",
+                            "identity": false
+                        },
+                        {
+                            "name": "title",
+                            "type": "string",
+                            "identity": false
+                        }
+                    ],
+                    "listPath": "/tasks/list-deleted-tasks",
+                    "stateMachine": null
+                }
+            ]
+        }
+    ]
+}

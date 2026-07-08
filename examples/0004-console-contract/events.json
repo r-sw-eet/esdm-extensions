@@ -1,0 +1,26 @@
+[
+    {
+        "id": 3,
+        "aggregate": "task",
+        "aggregate_id": "0197f3a2-1c9e-7a31-8d5f-2b7c4e9a1d22",
+        "playhead": 2,
+        "event": "todo.task.task-renamed",
+        "payload": {
+            "id": "0197f3a2-1c9e-7a31-8d5f-2b7c4e9a1d22",
+            "title": "buy oat milk"
+        },
+        "recorded_on": "2026-07-07 09:15:42"
+    },
+    {
+        "id": 2,
+        "aggregate": "task",
+        "aggregate_id": "0197f3a2-1c9e-7a31-8d5f-2b7c4e9a1d22",
+        "playhead": 1,
+        "event": "todo.task.task-added",
+        "payload": {
+            "id": "0197f3a2-1c9e-7a31-8d5f-2b7c4e9a1d22",
+            "title": "buy milk"
+        },
+        "recorded_on": "2026-07-07 09:14:03"
+    }
+]
