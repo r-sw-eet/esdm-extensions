@@ -1,0 +1,224 @@
+{
+  "steps": [
+    {
+      "step": "place-o1",
+      "endpoint": "POST orders/place-order",
+      "status": 200,
+      "body": {
+        "id": "\u00abO1\u00bb"
+      }
+    },
+    {
+      "step": "ship-placed",
+      "endpoint": "POST orders/ship-order",
+      "status": 409,
+      "body": {
+        "error": "CONFLICT",
+        "message": "ship-order is not allowed while \"placed\"",
+        "details": {
+          "errorCode": "ILLEGAL_TRANSITION",
+          "command": "ship-order"
+        }
+      }
+    },
+    {
+      "step": "pay-partial",
+      "endpoint": "POST orders/pay-order",
+      "status": 200,
+      "body": {
+        "id": "\u00abO1\u00bb"
+      }
+    },
+    {
+      "step": "ship-partial",
+      "endpoint": "POST orders/ship-order",
+      "status": 409,
+      "body": {
+        "error": "CONFLICT",
+        "message": "ship-order requires: paidAmount >= total",
+        "details": {
+          "errorCode": "GUARD_VIOLATION",
+          "command": "ship-order"
+        }
+      }
+    },
+    {
+      "step": "pay-paid",
+      "endpoint": "POST orders/pay-order",
+      "status": 409,
+      "body": {
+        "error": "CONFLICT",
+        "message": "pay-order is not allowed while \"paid\"",
+        "details": {
+          "errorCode": "ILLEGAL_TRANSITION",
+          "command": "pay-order"
+        }
+      }
+    },
+    {
+      "step": "cancel-o1",
+      "endpoint": "POST orders/cancel-order",
+      "status": 200,
+      "body": {
+        "id": "\u00abO1\u00bb"
+      }
+    },
+    {
+      "step": "place-o2",
+      "endpoint": "POST orders/place-order",
+      "status": 200,
+      "body": {
+        "id": "\u00abO2\u00bb"
+      }
+    },
+    {
+      "step": "pay-full",
+      "endpoint": "POST orders/pay-order",
+      "status": 200,
+      "body": {
+        "id": "\u00abO2\u00bb"
+      }
+    },
+    {
+      "step": "ship-full",
+      "endpoint": "POST orders/ship-order",
+      "status": 200,
+      "body": {
+        "id": "\u00abO2\u00bb"
+      }
+    },
+    {
+      "step": "pay-shipped",
+      "endpoint": "POST orders/pay-order",
+      "status": 409,
+      "body": {
+        "error": "CONFLICT",
+        "message": "pay-order is not allowed while \"shipped\"",
+        "details": {
+          "errorCode": "ILLEGAL_TRANSITION",
+          "command": "pay-order"
+        }
+      }
+    }
+  ],
+  "checkpoints": [
+    {
+      "checkpoint": "list-orders",
+      "endpoint": "GET orders/list-orders",
+      "status": 200,
+      "body": [
+        {
+          "id": "\u00abO1\u00bb",
+          "customerName": "Ada Lovelace",
+          "total": 100,
+          "paidAmount": 40,
+          "status": "cancelled"
+        },
+        {
+          "id": "\u00abO2\u00bb",
+          "customerName": "Grace Hopper",
+          "total": 250,
+          "paidAmount": 250,
+          "status": "shipped"
+        }
+      ]
+    },
+    {
+      "checkpoint": "get-o1",
+      "endpoint": "GET orders/get-order?id=$O1",
+      "status": 200,
+      "body": {
+        "id": "\u00abO1\u00bb",
+        "customerName": "Ada Lovelace",
+        "total": 100,
+        "paidAmount": 40,
+        "status": "cancelled"
+      }
+    },
+    {
+      "checkpoint": "get-o2",
+      "endpoint": "GET orders/get-order?id=$O2",
+      "status": 200,
+      "body": {
+        "id": "\u00abO2\u00bb",
+        "customerName": "Grace Hopper",
+        "total": 250,
+        "paidAmount": 250,
+        "status": "shipped"
+      }
+    },
+    {
+      "checkpoint": "events",
+      "endpoint": "GET _dev/events",
+      "status": 200,
+      "body": [
+        {
+          "aggregate": "order",
+          "aggregateId": "\u00abO2\u00bb",
+          "event": "order-shipped",
+          "playhead": 3,
+          "payload": {
+            "id": "\u00abO2\u00bb",
+            "status": "shipped"
+          }
+        },
+        {
+          "aggregate": "order",
+          "aggregateId": "\u00abO2\u00bb",
+          "event": "order-paid",
+          "playhead": 2,
+          "payload": {
+            "id": "\u00abO2\u00bb",
+            "paidAmount": 250,
+            "status": "paid"
+          }
+        },
+        {
+          "aggregate": "order",
+          "aggregateId": "\u00abO2\u00bb",
+          "event": "order-placed",
+          "playhead": 1,
+          "payload": {
+            "id": "\u00abO2\u00bb",
+            "customerName": "Grace Hopper",
+            "total": 250,
+            "status": "placed"
+          }
+        },
+        {
+          "aggregate": "order",
+          "aggregateId": "\u00abO1\u00bb",
+          "event": "order-cancelled",
+          "playhead": 3,
+          "payload": {
+            "id": "\u00abO1\u00bb",
+            "status": "cancelled"
+          }
+        },
+        {
+          "aggregate": "order",
+          "aggregateId": "\u00abO1\u00bb",
+          "event": "order-paid",
+          "playhead": 2,
+          "payload": {
+            "id": "\u00abO1\u00bb",
+            "paidAmount": 40,
+            "status": "paid"
+          }
+        },
+        {
+          "aggregate": "order",
+          "aggregateId": "\u00abO1\u00bb",
+          "event": "order-placed",
+          "playhead": 1,
+          "payload": {
+            "id": "\u00abO1\u00bb",
+            "customerName": "Ada Lovelace",
+            "total": 100,
+            "status": "placed"
+          }
+        }
+      ]
+    }
+  ]
+}

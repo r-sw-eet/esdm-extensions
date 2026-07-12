@@ -1,0 +1,67 @@
+# C4 scenario: manufacturing — the POLICY + multi-context probe.
+# submit-request (intake) triggers the draft-quote-on-request policy, which mints a
+# quote aggregate in the quoting context — the client never sees a create response
+# for it, so the harness captures its id from a polled list-quotes read. accept-quote
+# carries the temporal FEEL guard `validUntil >= today()`, making every generator's
+# FEEL date semantics and today() face each other.
+app: manufacturing
+model: esdm-2-symfony/examples/manufacturing/model
+# `python` (django-eventsourcing-postgres) is excluded: that target does not emit
+# policies yet (esdm-2-python known gap), so the draft-quote-on-request reaction can
+# never fire there. Re-add it when policy emission lands. python-esdb runs policies
+# in its observe worker and stays in the matrix.
+targets: [symfony, symfony-esdb, nimbus, nimbus-postgres, python-esdb]
+
+steps:
+  - name: submit-r1
+    post: intake/submit-request
+    body: { customerName: "Ada Lovelace", customerEmail: "ada@acme.test", product: "flux capacitor", quantity: 3 }
+    capture: R1
+  - name: quote-q1-drafted     # policy fires async: poll until the quote lands
+    get: quoting/list-quotes
+    poll: true
+    min_rows: 1
+    capture: Q1
+  - name: price-q1
+    post: quoting/price-quote
+    body: { id: "$Q1", amount: 4200, currency: "EUR", validUntil: "2033-01-01" }
+  - name: send-q1
+    post: quoting/send-quote
+    body: { id: "$Q1" }
+  - name: accept-q1            # FEEL guard passes: 2033-01-01 >= today()
+    post: quoting/accept-quote
+    body: { id: "$Q1" }
+  - name: submit-r2
+    post: intake/submit-request
+    body: { customerName: "Grace Hopper", customerEmail: "grace@acme.test", product: "compiler", quantity: 1 }
+    capture: R2
+  - name: quote-q2-drafted
+    get: quoting/list-quotes
+    poll: true
+    min_rows: 2
+    capture: Q2
+  - name: price-q2-expired
+    post: quoting/price-quote
+    body: { id: "$Q2", amount: 999, currency: "EUR", validUntil: "2020-01-01" }
+  - name: send-q2
+    post: quoting/send-quote
+    body: { id: "$Q2" }
+  - name: accept-expired       # FEEL guard rejection: 2020-01-01 >= today() is false
+    post: quoting/accept-quote
+    body: { id: "$Q2" }
+  - name: reject-q2
+    post: quoting/reject-quote
+    body: { id: "$Q2" }
+  - name: withdraw-r2
+    post: intake/withdraw-request
+    body: { id: "$R2" }
+
+checkpoints:
+  - name: list-requests
+    get: intake/list-requests
+  - name: list-quotes
+    get: quoting/list-quotes
+  - name: get-q1
+    get: "quoting/get-quote?id=$Q1"
+  - name: events
+    get: _dev/events

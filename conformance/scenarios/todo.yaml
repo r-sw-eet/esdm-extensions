@@ -1,0 +1,48 @@
+# C4 scenario: todo — the seed app every generator carries.
+# First target in `targets` is the reference oracle; all others diff against it.
+app: todo
+model: esdm-2-symfony/examples/todo/model
+targets: [symfony, symfony-esdb, nimbus, nimbus-postgres, python, python-esdb]
+
+# Steps run in order against every stack. `capture` stores the response `id`
+# under a placeholder; later `$NAME` references resolve to the captured value
+# (ids are server-minted and target-specific — the differ masks them).
+steps:
+  - name: add-t1
+    post: tasks/add-task
+    body: { title: "Ship the C4 harness" }
+    capture: T1
+  - name: add-t2
+    post: tasks/add-task
+    body: { title: "Register divergences" }
+    capture: T2
+  - name: rename-t1
+    post: tasks/rename-task
+    body: { id: "$T1", title: "Ship the C4 conformance harness" }
+  - name: complete-t1
+    post: tasks/set-completion
+    body: { id: "$T1", completed: true }
+  - name: delete-t2
+    post: tasks/delete-task
+    body: { id: "$T2" }
+  # State machine: task commands admit only from `open` -> renaming a deleted task must be rejected.
+  - name: rename-deleted
+    post: tasks/rename-task
+    body: { id: "$T2", title: "should be rejected" }
+  # Unknown-aggregate probe: same fixed id on every stack.
+  - name: rename-unknown
+    post: tasks/rename-task
+    body: { id: "00000000-0000-0000-0000-000000000000", title: "nobody home" }
+
+# Checkpoints are read after the write sequence converges (polled until stable).
+checkpoints:
+  - name: list-tasks
+    get: tasks/list-tasks
+  - name: get-t1
+    get: "tasks/get-task?id=$T1"
+  - name: get-t2
+    get: "tasks/get-task?id=$T2"
+  - name: list-deleted
+    get: tasks/list-deleted-tasks
+  - name: events
+    get: _dev/events

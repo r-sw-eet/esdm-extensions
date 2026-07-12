@@ -1,0 +1,175 @@
+{
+  "steps": [
+    {
+      "step": "add-t1",
+      "endpoint": "POST tasks/add-task",
+      "status": 200,
+      "body": {
+        "id": "\u00abT1\u00bb"
+      }
+    },
+    {
+      "step": "add-t2",
+      "endpoint": "POST tasks/add-task",
+      "status": 200,
+      "body": {
+        "id": "\u00abT2\u00bb"
+      }
+    },
+    {
+      "step": "rename-t1",
+      "endpoint": "POST tasks/rename-task",
+      "status": 200,
+      "body": {
+        "id": "\u00abT1\u00bb"
+      }
+    },
+    {
+      "step": "complete-t1",
+      "endpoint": "POST tasks/set-completion",
+      "status": 200,
+      "body": {
+        "id": "\u00abT1\u00bb"
+      }
+    },
+    {
+      "step": "delete-t2",
+      "endpoint": "POST tasks/delete-task",
+      "status": 200,
+      "body": {
+        "id": "\u00abT2\u00bb"
+      }
+    },
+    {
+      "step": "rename-deleted",
+      "endpoint": "POST tasks/rename-task",
+      "status": 409,
+      "body": {
+        "error": "CONFLICT",
+        "message": "rename-task is not allowed while \"deleted\"",
+        "details": {
+          "errorCode": "ILLEGAL_TRANSITION",
+          "command": "rename-task"
+        }
+      }
+    },
+    {
+      "step": "rename-unknown",
+      "endpoint": "POST tasks/rename-task",
+      "status": 409,
+      "body": {
+        "error": "CONFLICT",
+        "message": "rename-task is not allowed while \"undefined\"",
+        "details": {
+          "errorCode": "ILLEGAL_TRANSITION",
+          "command": "rename-task"
+        }
+      }
+    }
+  ],
+  "checkpoints": [
+    {
+      "checkpoint": "list-tasks",
+      "endpoint": "GET tasks/list-tasks",
+      "status": 200,
+      "body": [
+        {
+          "id": "\u00abT1\u00bb",
+          "title": "Ship the C4 conformance harness",
+          "completed": true
+        }
+      ]
+    },
+    {
+      "checkpoint": "get-t1",
+      "endpoint": "GET tasks/get-task?id=$T1",
+      "status": 200,
+      "body": {
+        "id": "\u00abT1\u00bb",
+        "title": "Ship the C4 conformance harness",
+        "completed": true
+      }
+    },
+    {
+      "checkpoint": "get-t2",
+      "endpoint": "GET tasks/get-task?id=$T2",
+      "status": 404,
+      "body": {
+        "error": "NOT_FOUND",
+        "message": "Tasks not found",
+        "details": {
+          "errorCode": "TASKS_NOT_FOUND",
+          "reason": "Could not find Tasks matching the given filter"
+        }
+      }
+    },
+    {
+      "checkpoint": "list-deleted",
+      "endpoint": "GET tasks/list-deleted-tasks",
+      "status": 200,
+      "body": [
+        {
+          "id": "\u00abT2\u00bb",
+          "title": "Register divergences"
+        }
+      ]
+    },
+    {
+      "checkpoint": "events",
+      "endpoint": "GET _dev/events",
+      "status": 200,
+      "body": [
+        {
+          "aggregate": "task",
+          "aggregateId": "\u00abT2\u00bb",
+          "event": "task-deleted",
+          "playhead": 2,
+          "payload": {
+            "id": "\u00abT2\u00bb",
+            "title": "Register divergences"
+          }
+        },
+        {
+          "aggregate": "task",
+          "aggregateId": "\u00abT1\u00bb",
+          "event": "task-completion-changed",
+          "playhead": 3,
+          "payload": {
+            "id": "\u00abT1\u00bb",
+            "completed": true
+          }
+        },
+        {
+          "aggregate": "task",
+          "aggregateId": "\u00abT1\u00bb",
+          "event": "task-renamed",
+          "playhead": 2,
+          "payload": {
+            "id": "\u00abT1\u00bb",
+            "title": "Ship the C4 conformance harness"
+          }
+        },
+        {
+          "aggregate": "task",
+          "aggregateId": "\u00abT2\u00bb",
+          "event": "task-added",
+          "playhead": 1,
+          "payload": {
+            "id": "\u00abT2\u00bb",
+            "title": "Register divergences"
+          }
+        },
+        {
+          "aggregate": "task",
+          "aggregateId": "\u00abT1\u00bb",
+          "event": "task-added",
+          "playhead": 1,
+          "payload": {
+            "id": "\u00abT1\u00bb",
+            "title": "Ship the C4 harness"
+          }
+        }
+      ]
+    }
+  ]
+}

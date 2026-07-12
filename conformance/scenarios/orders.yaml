@@ -1,0 +1,52 @@
+# C4 scenario: orders — the FEEL-compiler probe.
+# The order state machine gates ship-order on BOTH a state (paid) and a FEEL guard
+# (paidAmount >= total), so this scenario exercises the two rejection kinds separately:
+# ship from `placed` (state-machine) and ship after a PARTIAL payment (FEEL guard —
+# each generator compiles the expression into its own language).
+app: orders
+model: esdm-2-symfony/examples/orders/model
+targets: [symfony, symfony-esdb, nimbus, nimbus-postgres, python, python-esdb]
+
+steps:
+  - name: place-o1
+    post: orders/place-order
+    body: { customerName: "Ada Lovelace", total: 100 }
+    capture: O1
+  - name: ship-placed          # state-machine rejection: never paid
+    post: orders/ship-order
+    body: { id: "$O1" }
+  - name: pay-partial
+    post: orders/pay-order
+    body: { id: "$O1", paidAmount: 40 }
+  - name: ship-partial         # FEEL guard rejection: 40 >= 100 is false
+    post: orders/ship-order
+    body: { id: "$O1" }
+  - name: pay-paid             # state-machine rejection: pay admits only from `placed`
+    post: orders/pay-order     # (catches union-of-admits bugs — pay must NOT pass in `paid`)
+    body: { id: "$O1", paidAmount: 60 }
+  - name: cancel-o1
+    post: orders/cancel-order
+    body: { id: "$O1" }
+  - name: place-o2
+    post: orders/place-order
+    body: { customerName: "Grace Hopper", total: 250 }
+    capture: O2
+  - name: pay-full
+    post: orders/pay-order
+    body: { id: "$O2", paidAmount: 250 }
+  - name: ship-full            # FEEL guard passes: 250 >= 250 (boundary)
+    post: orders/ship-order
+    body: { id: "$O2" }
+  - name: pay-shipped          # state-machine rejection: shipped is final
+    post: orders/pay-order
+    body: { id: "$O2", paidAmount: 1 }
+
+checkpoints:
+  - name: list-orders
+    get: orders/list-orders
+  - name: get-o1
+    get: "orders/get-order?id=$O1"
+  - name: get-o2
+    get: "orders/get-order?id=$O2"
+  - name: events
+    get: _dev/events

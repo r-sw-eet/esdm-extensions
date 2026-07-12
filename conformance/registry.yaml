@@ -1,0 +1,22 @@
+# C4 divergence registry — (endpoint, field, reason [, targets]).
+# Every entry is a VALIDATED, accepted cross-target difference observed by a real run;
+# the differ masks matching diffs (fnmatch globs on "METHOD path#step" + field path,
+# optionally scoped to specific targets) and reports them separately. Anything not
+# listed here must match the reference oracle exactly, or the run fails.
+#
+# 2026-07-12: findings #1–#4 (unknown-aggregate handling, create status, mutate ack
+# shape, error envelope) were HARMONIZED in favor of the nimbus wire behavior — the
+# symfony and django adapters now emit 200 creates, {id} mutate acks, the structured
+# {error, message, details:{errorCode, command}} envelope (unknown-aggregate mutate =
+# 409 ILLEGAL_TRANSITION while "undefined"), and the NOT_FOUND query envelope. Their
+# registry entries are gone: those surfaces must now match exactly.
+divergences:
+  # ---- finding 5: ESDB stores have no per-subject playhead --------------------
+  - endpoint: "GET _dev/events#*"
+    field: "*playhead"
+    targets: [symfony-esdb, nimbus, python-esdb]
+    reason: >-
+      /_dev/events playhead is an integer per-subject version on Postgres-backed
+      stores and null on EventSourcingDB-backed ones (ESDB exposes no per-subject
+      playhead). Inherent store difference; the 0004 contract declares the field
+      nullable for exactly this reason.
