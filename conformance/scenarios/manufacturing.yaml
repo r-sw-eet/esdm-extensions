@@ -6,11 +6,10 @@
 # FEEL date semantics and today() face each other.
 app: manufacturing
 model: esdm-2-symfony/examples/manufacturing/model
-# `python` (django-eventsourcing-postgres) is excluded: that target does not emit
-# policies yet (esdm-2-python known gap), so the draft-quote-on-request reaction can
-# never fire there. Re-add it when policy emission lands. python-esdb runs policies
-# in its observe worker and stays in the matrix.
-targets: [symfony, symfony-esdb, nimbus, nimbus-postgres, python-esdb]
+# All six targets: python (django-eventsourcing-postgres) emits policies since
+# 2026-07-14 (synchronous shared/reactions.py reactor); python-esdb runs them in
+# its observe worker.
+targets: [symfony, symfony-esdb, nimbus, nimbus-postgres, python, python-esdb]
 
 steps:
   - name: submit-r1
