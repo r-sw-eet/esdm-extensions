@@ -31,8 +31,8 @@ domain console**: the (already uniform) domain surface, plus three development-o
 — plus permissive CORS while in development mode, so the console can run on another origin.
 
 Any conforming app can be driven by any conforming console. The reference consumer is
-**esdm-vue-reader** (a Vue 3 viewer); the reference producers are the two BPAG generator targets
-(Symfony + PostgreSQL, Nimbus + EventSourcingDB).
+**esdm-vue-reader** (a Vue 3 viewer); the reference producers are the ESDM toolchain's
+generator targets (Symfony, Nimbus and Django flavors, on PostgreSQL or EventSourcingDB).
 
 ## Motivation
 
@@ -217,8 +217,8 @@ valve for evolving the catalog.
 
 ## Implementation status
 
-- **Producers:** both BPAG reference targets emit the contract — `symfony-patchlevel-postgres`
-  (DevController + CORS subscriber; events from the `eventstore` table) and
-  `nimbus-eventsourcingdb` (Hono dev router; events via a recursive EventSourcingDB read).
+- **Producers:** all six reference generator targets emit the contract:
+  `symfony-patchlevel-postgres`, `symfony-eventsourcingdb`, `nimbus-eventsourcingdb`,
+  `nimbus-postgres`, `django-eventsourcing-postgres` and `django-eventsourcingdb`.
 - **Consumer:** **esdm-vue-reader**, the reference console — Vue 3, one build, no per-target
   code; point it at any conforming app's base URL.

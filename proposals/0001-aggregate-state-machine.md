@@ -190,9 +190,8 @@ ESDM is by **the native web** (Golo Roden) — confirmed in the vendor's own doc
 
 ## Implementation status
 
-A reference implementation exists in **BPAG** (Business Process App Generator), an
-ESDM→code generator (see the repository [README](../README.md)). Of this proposal it
-implements:
+A reference implementation exists in the **ESDM toolchain** generators (see the
+repository [README](../README.md)). Of this proposal it implements:
 
 - `states` / `transitions` / `admits` compile to a status field maintained in the evolve
   step and a guard at the top of each decide step; an illegal `(state, command)` pair

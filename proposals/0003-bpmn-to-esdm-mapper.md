@@ -236,7 +236,7 @@ checks on top:
 
 ## Implementation status
 
-The reference implementation (**BPAG**) ships this mapper as a `bpmn:map` command, exercised
+The reference implementation (the **ESDM toolchain**) ships this mapper as a `bpmn:map` command, exercised
 by three example applications (a single-pool order flow; a two-pool commerce flow with a
 cross-pool policy; a five-pool factory flow with a quality-gate rework loop and a
 four-policy chain):

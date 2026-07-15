@@ -212,7 +212,7 @@ unchanged. A model with zero FEEL behaves exactly as today.
 
 ## Implementation status
 
-The reference implementation (**BPAG**, see the repository [README](../README.md)) ships
+The reference implementation (the **ESDM toolchain**, see the repository [README](../README.md)) ships
 FEEL as a lexer / parser / compiler / model-aware validator:
 
 - **Implemented syntax:** comparisons (`=`, `!=`, `<`, `<=`, `>`, `>=`), `and` / `or` /

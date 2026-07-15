@@ -92,12 +92,16 @@ Working documents, lifted from the reference generator's example apps — see
 
 ## Reference implementation
 
-The proposals are implemented (to the subset noted per proposal) in **BPAG — Business
-Process App Generator**: draw the business process in BPMN, BPAG maps it to ESDM and
-generates a complete, running event-sourced application. Which languages and frameworks
-it targets is BPAG's concern, not this spec's — everything here is target-agnostic.
+The proposals are implemented (to the subset noted per proposal) by the **ESDM toolchain**,
+a family of standalone code generators: draw the business process in BPMN, the 0003 mapper
+compiles it to ESDM and a generator emits a complete, running event-sourced application.
+Which languages and frameworks are targeted is the generators' concern, not this spec's:
+everything here is target-agnostic.
 
-BPAG will be published separately; the link will land here.
+The generators: [esdm-2-symfony](https://github.com/r-sw-eet/esdm-2-symfony) (PHP · Symfony),
+[esdm-2-nimbus](https://github.com/r-sw-eet/esdm-2-nimbus) (TypeScript · Nimbus) and
+[esdm-2-python](https://github.com/r-sw-eet/esdm-2-python) (Python · Django), each with a
+PostgreSQL or EventSourcingDB + MongoDB event-store target.
 
 ## Status & discussion
 
