@@ -16,7 +16,8 @@ conformance/
 ```
 
 Runners: `esdm-2-nimbus/scripts/conformance.ts` · `esdm-2-symfony/scripts/conformance.php`
-(the oracle — carries `--record`) · `esdm-2-python/scripts/conformance-c4.py`.
+(the oracle — carries `--record`) · `esdm-2-python/scripts/conformance-c4.py` ·
+`esdm-2-opencqrs/scripts/conformance.sh`.
 
 ## Runner contract
 

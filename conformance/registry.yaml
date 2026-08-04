@@ -14,7 +14,7 @@ divergences:
   # ---- finding 5: ESDB stores have no per-subject playhead --------------------
   - endpoint: "GET _dev/events#*"
     field: "*playhead"
-    targets: [symfony-esdb, nimbus, python-esdb]
+    targets: [symfony-esdb, nimbus, python-esdb, opencqrs]
     reason: >-
       /_dev/events playhead is an integer per-subject version on Postgres-backed
       stores and null on EventSourcingDB-backed ones (ESDB exposes no per-subject

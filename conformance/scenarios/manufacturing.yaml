@@ -9,7 +9,7 @@ model: esdm-2-symfony/examples/manufacturing/model
 # All six targets: python (django-eventsourcing-postgres) emits policies since
 # 2026-07-14 (synchronous shared/reactions.py reactor); python-esdb runs them in
 # its observe worker.
-targets: [symfony, symfony-esdb, nimbus, nimbus-postgres, python, python-esdb]
+targets: [symfony, symfony-esdb, nimbus, nimbus-postgres, python, python-esdb, opencqrs, opencqrs-postgres]
 
 steps:
   - name: submit-r1

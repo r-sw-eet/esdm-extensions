@@ -2,7 +2,7 @@
 # First target in `targets` is the reference oracle; all others diff against it.
 app: todo
 model: esdm-2-symfony/examples/todo/model
-targets: [symfony, symfony-esdb, nimbus, nimbus-postgres, python, python-esdb]
+targets: [symfony, symfony-esdb, nimbus, nimbus-postgres, python, python-esdb, opencqrs, opencqrs-postgres]
 
 # Steps run in order against every stack. `capture` stores the response `id`
 # under a placeholder; later `$NAME` references resolve to the captured value

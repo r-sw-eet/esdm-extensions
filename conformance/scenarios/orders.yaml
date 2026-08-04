@@ -5,7 +5,7 @@
 # each generator compiles the expression into its own language).
 app: orders
 model: esdm-2-symfony/examples/orders/model
-targets: [symfony, symfony-esdb, nimbus, nimbus-postgres, python, python-esdb]
+targets: [symfony, symfony-esdb, nimbus, nimbus-postgres, python, python-esdb, opencqrs, opencqrs-postgres]
 
 steps:
   - name: place-o1
