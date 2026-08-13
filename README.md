@@ -22,6 +22,7 @@ are schema-checked YAML. *Behaviour*, however, lives in prose fields (`invariant
 | long-running flow, timers, correlation                            | **yes**               | core `process-manager`                                |
 | **lifecycle transitions** (which command is valid in which state) | no — prose            | **[0001](proposals/0001-aggregate-state-machine.md)** |
 | **data & temporal predicates** (guards, conditions, decisions)    | no — prose            | **[0002](proposals/0002-feel-rule-expressions.md)**   |
+| **reaction payloads** (what an emitted command carries)           | no — *no field at all* | **[0005](proposals/0005-reaction-payload-mapping.md)** |
 | bespoke logic (a pricing algorithm, a fraud check)                | no                    | out of scope — stays code                             |
 
 Together, 0001 and 0002 convert most of that prose-behaviour gap into formal, generatable
@@ -36,11 +37,12 @@ design.
 | [0002](proposals/0002-feel-rule-expressions.md)   | FEEL Rule Expressions   | *convention* over existing string fields            | draft — implemented (subset)                            |
 | [0003](proposals/0003-bpmn-to-esdm-mapper.md)     | BPMN → ESDM Mapper      | *top-down transformation*, emits core + 0001 + 0002 | draft — implemented (subset)                            |
 | [0004](proposals/0004-domain-console-contract.md) | Domain Console Contract | *runtime HTTP contract* exposed by generated apps   | draft — implemented                                     |
+| [0005](proposals/0005-reaction-payload-mapping.md) | Reaction Payload Mapping | *convention* over an annotation, reusing 0002's FEEL | draft — implemented in all four generators, 8/8 targets conform |
 
 Three different layers live here:
 
-- **0001 and 0002 extend the ESDM *model*** — they add (or formalize) what the intermediate
-  representation can express: lifecycles and conditions.
+- **0001, 0002 and 0005 extend the ESDM *model*** — they add (or formalize) what the intermediate
+  representation can express: lifecycles, conditions, and what a reaction carries.
 - **0003 targets ESDM from above** — it lets non-programmer domain experts author in BPMN
   and *emits* ESDM. It adds nothing to ESDM itself.
 - **0004 sits after code generation** — a small dev-time HTTP surface every generated app
@@ -99,9 +101,11 @@ Which languages and frameworks are targeted is the generators' concern, not this
 everything here is target-agnostic.
 
 The generators: [esdm-2-symfony](https://github.com/r-sw-eet/esdm-2-symfony) (PHP · Symfony),
-[esdm-2-nimbus](https://github.com/r-sw-eet/esdm-2-nimbus) (TypeScript · Nimbus) and
-[esdm-2-python](https://github.com/r-sw-eet/esdm-2-python) (Python · Django), each with a
-PostgreSQL or EventSourcingDB + MongoDB event-store target.
+[esdm-2-nimbus](https://github.com/r-sw-eet/esdm-2-nimbus) (TypeScript · Nimbus),
+[esdm-2-python](https://github.com/r-sw-eet/esdm-2-python) (Python · Django) and
+[esdm-2-opencqrs](https://github.com/r-sw-eet/esdm-2-opencqrs) (Java · Spring Boot + OpenCQRS),
+each with a PostgreSQL or EventSourcingDB + MongoDB event-store target - four generators, eight
+targets, one conformance suite.
 
 ## Status & discussion
 
