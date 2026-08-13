@@ -97,19 +97,112 @@ ESDM's knowledge. Make it explicit one of two ways (both leave `esdm lint` green
 The generator compiles a bounded subset — the regular-shaped ~80% that covers real invariants
 without becoming a general-purpose language:
 
-| Category            | Supported                                                                                     |
-|---------------------|-----------------------------------------------------------------------------------------------|
-| comparison          | `=`, `!=`, `<`, `<=`, `>`, `>=`                                                               |
-| boolean             | `and`, `or`, `not(...)`                                                                       |
-| membership / ranges | `x in ["a","b"]`, `x in [1..10]`                                                              |
-| conditional         | `if … then … else …`                                                                          |
-| temporal            | `today()`, `now()`, `duration("P14D")`, `date(...)`, date ± duration                          |
-| collections         | `every x in xs satisfies …`, `some x in xs satisfies …`, `count(xs[pred])`, `sum(xs[].field)` |
-| access              | path `a.b`, list filter `xs[pred]`                                                            |
-| literals            | `"string"`, numbers, `true`/`false`, `null`                                                   |
+The **Status** column is not decoration: a reader has to be able to tell what a generator will
+accept without reading a generator. "live" is implemented in the reference toolchain and covered
+by its tests; "proposed" is specified here and rejected by every parser today.
 
-Anything outside the subset is **rejected at lint time** (see below) — never silently
-miscompiled.
+| Category            | Supported                                                                                     | Status                    |
+|---------------------|-----------------------------------------------------------------------------------------------|---------------------------|
+| comparison          | `=`, `!=`, `<`, `<=`, `>`, `>=`                                                               | live                      |
+| boolean             | `and`, `or`, `not(...)`                                                                       | live                      |
+| grouping            | `( … )`                                                                                        | live                      |
+| membership          | `x in ["a","b"]`                                                                               | live                      |
+| clock               | `today()`, `now()`                                                                             | live                      |
+| literals            | `"string"`, numbers, `true`/`false`, `null`                                                   | live (no negative literal) |
+| **arithmetic**      | `+`, `-`, `*`, `/`, unary `-`                                                                  | **proposed — see below**  |
+| ranges              | `x in [1..10]`                                                                                 | proposed                  |
+| conditional         | `if … then … else …`                                                                           | proposed                  |
+| temporal arithmetic | `duration("P14D")`, `date(...)`, date ± duration                                               | proposed — blocked        |
+| collections         | `every x in xs satisfies …`, `some x in xs satisfies …`, `count(xs[pred])`, `sum(xs[].field)` | proposed — blocked        |
+| access              | path `a.b`, list filter `xs[pred]`                                                             | proposed                  |
+
+Anything outside the *live* rows is **rejected at parse time** — never silently miscompiled.
+
+**MEASURED (2026-08-14)**, against the reference parser: `amount * 2`, `a + b` and `-5` are all
+rejected at the lexer (`Unexpected character`), and so is `validUntil + duration("P14D")` — the
+temporal row has never been reachable, because there is no `+` token. `count(items[x > 1])` is
+rejected too: the AST's call node carries a function name and **no arguments**, so any call taking
+one is unrepresentable. Those two rows are marked *blocked* above: they need a change to the AST,
+not just to the lexer.
+
+## Amendment (2026-08-14): arithmetic
+
+### Why now
+
+[0005](0005-reaction-payload-mapping.md) makes a reaction's payload a FEEL context literal, so a
+mapping can say *which* value a field takes. It cannot say `durationSeconds * rateCentsPerHour`,
+because this subset has no arithmetic at all - a gap found by writing that example into 0005 and
+then discovering it does not parse. Every computed value therefore stays hand-written, which is
+precisely the seam these proposals exist to close.
+
+### Operators
+
+`+`, `-`, `*`, `/`, and unary `-`. No exponent, no modulo: both are rare in domain rules and each
+adds a semantics argument (negative exponents, sign of the remainder) that buys nothing here.
+
+Unary minus also fixes an accidental hole: **negative literals are not expressible today**, so
+`amount > -1` cannot be written at all.
+
+### Precedence and associativity
+
+Tightest to loosest, all left-associative:
+
+```
+unary -        →  * /        →  + -        →  comparison        →  not(…)  →  and  →  or
+```
+
+Parentheses already group and already parse, so `(a + b) * c` needs no new syntax. This ordering is
+the conventional one; it is written down because four hand-written recursive-descent parsers have to
+agree, and a table is cheaper to agree on than four implementations.
+
+### The number domain, and the trap that makes this worth specifying
+
+**All arithmetic evaluates in the real-number domain. Integer division must never occur.**
+
+This is not pedantry. In Java `7 / 2` on two `long` fields is `3`; in TypeScript it is `3.5`. A model
+that says `total / count` would then mean different things on different targets while every
+generator looked correct - the identical failure mode 0002 already documents for comparisons, where
+`Objects.equals(Long, Integer)` silently answers false. The remedy is the same one the reference
+toolchain already applies to comparisons: **arithmetic compiles through the emitted per-target
+helper**, not to bare operators, so the coercion lives in one place per target and is testable
+there.
+
+**Division by zero.** A literal zero divisor is a validation error. At runtime a zero divisor
+yields FEEL's `null`, and the two contexts differ deliberately: in a predicate, `null` is false, so
+a guard refuses; in a 0005 mapping, `null` must **not** be written into a command field - the
+reaction fails loudly and dispatches nothing.
+
+**Precision, stated honestly.** DMN specifies decimal arithmetic; all four reference targets use
+binary64. This amendment does **not** claim decimal semantics, because none of the four implement
+it. The consequence must be said plainly rather than discovered: *do not compute money in the
+model.* Keep monetary values in integer minor units, avoid division, and where rounding matters make
+it explicit in the domain instead of leaning on a float. A future amendment may add decimal
+semantics; it would need all four targets to change, not just this document.
+
+### What the gate must additionally reject
+
+Beyond the existing binding check, two rules the model already has the information to enforce:
+
+1. **Operands must be numeric.** A field declared `type: string` or `type: boolean` in `state` or
+   `data` is a validation error under an arithmetic operator. The model knows every field's type;
+   this is the first place 0002 would use it.
+2. **A literal zero divisor** is a validation error, as above.
+
+Both abort before the adapter, like every other gate.
+
+### Still out of scope after this amendment
+
+`date ± duration` stays blocked. It reads like arithmetic, but it needs `duration("P14D")` and
+`date(...)` - calls with arguments - and the AST's call node carries no arguments at all. That is an
+AST change and belongs in its own amendment, together with the collection quantifiers that are
+blocked for the same reason.
+
+### Before any of this is implemented
+
+Add a conformance fixture that uses arithmetic, and record the golden, **before** writing the
+compiler in any generator. 0005 shipped its implementation with a fixture that never exercised it,
+so eight green targets proved nothing about the new path; the same mistake is available here and is
+cheaper to avoid than to repair.
 
 ## Validation — two layers, both before codegen
 
@@ -226,9 +319,13 @@ FEEL as a lexer / parser / compiler / model-aware validator:
 - **Compilation:** the same AST compiles to native decide-step guards in each of the
   generator's target languages — no runtime rule engine.
 - **Where it is wired:** `admits[].when` of [0001](0001-aggregate-state-machine.md)
-  state-machine documents. Extending the pipeline to `invariants` / `endsWhen` / `timers`
-  is open, as are ranges (`[1..10]`), `if … then … else`, durations/date arithmetic and
+  state-machine documents, and - since [0005](0005-reaction-payload-mapping.md) - the value
+  expressions of a reaction mapping. Extending the pipeline to `invariants` / `endsWhen` /
+  `timers` is open, as are ranges (`[1..10]`), `if … then … else`, durations/date arithmetic and
   the collection quantifiers.
+- **Arithmetic (amendment 2026-08-14): specified, not implemented.** No parser accepts `+`, `-`,
+  `*`, `/` or a negative literal today; the amendment above says what they should mean and in what
+  order they bind. Nothing in the toolchain has changed yet.
 
 ## Prior art
 

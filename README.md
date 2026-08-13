@@ -34,7 +34,7 @@ design.
 | #                                                 | Title                   | Shape                                               | Status                                                  |
 |---------------------------------------------------|-------------------------|-----------------------------------------------------|---------------------------------------------------------|
 | [0001](proposals/0001-aggregate-state-machine.md) | Aggregate State Machine | new ESDM *extension kind* (`*.statemachine.yaml`)   | draft — implemented (subset) in the reference generator |
-| [0002](proposals/0002-feel-rule-expressions.md)   | FEEL Rule Expressions   | *convention* over existing string fields            | draft — implemented (subset)                            |
+| [0002](proposals/0002-feel-rule-expressions.md)   | FEEL Rule Expressions   | *convention* over existing string fields            | draft — implemented (subset); arithmetic amended in, not yet built |
 | [0003](proposals/0003-bpmn-to-esdm-mapper.md)     | BPMN → ESDM Mapper      | *top-down transformation*, emits core + 0001 + 0002 | draft — implemented (subset)                            |
 | [0004](proposals/0004-domain-console-contract.md) | Domain Console Contract | *runtime HTTP contract* exposed by generated apps   | draft — implemented                                     |
 | [0005](proposals/0005-reaction-payload-mapping.md) | Reaction Payload Mapping | *convention* over an annotation, reusing 0002's FEEL | draft — implemented in all four generators, 8/8 targets conform |

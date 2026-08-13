@@ -310,10 +310,12 @@ annotation map.
   command name.
 - **Arithmetic, and therefore most "computed" values.** **MEASURED while implementing this:**
   0002's v1 subset has no arithmetic operators at all - its lexer admits only `<= >= != = < >` -
-  so `durationSeconds * rate / 3600` does not parse. A mapping value can be a field, a literal, a
-  conditional, a temporal expression or a membership test, and nothing else. Genuine arithmetic
-  needs 0002's subset to grow first, and that belongs in an amendment to 0002 rather than here.
-  An earlier draft of this document used an arithmetic example; it was wrong.
+  so `durationSeconds * rate / 3600` does not parse. A mapping value can be a field, a literal or a
+  membership test, and nothing else. An earlier draft of this document used an arithmetic example;
+  it was wrong. **[0002's amendment of 2026-08-14](0002-feel-rule-expressions.md#amendment-2026-08-14-arithmetic)
+  now specifies arithmetic** - operators, precedence, the number domain and division by zero - and
+  once that is implemented, a mapping inherits it with no change to this proposal. Until then a
+  computed value stays hand-written.
 - **Anything requiring data the handled event does not carry.** A mapping is a pure function of one
   event. Enrichment by lookup is a process manager or an application concern, deliberately.
 - **Cross-store references.** Where an application keeps two event stores, the reference between
