@@ -22,8 +22,12 @@ staying unrunnable for everyone else. Keep private models and their scenarios in
 own repo.
 
 Runners: `esdm-2-nimbus/scripts/conformance.ts` · `esdm-2-symfony/scripts/conformance.php`
-(the oracle — carries `--record`) · `esdm-2-python/scripts/conformance-c4.py` ·
+(the oracle — carries `--record`) · `esdm-2-python/scripts/conformance_c4.py` ·
 `esdm-2-opencqrs/scripts/conformance.sh`.
+
+> Mind the name in esdm-2-python: **`conformance_c4.py`** is the C4 runner, while that repo's
+> `scripts/conformance.sh` is its *examples smoke gate* and does something else entirely.
+> Everywhere else `scripts/conformance.sh` is the C4 entry point.
 
 ## Runner contract
 
@@ -33,7 +37,7 @@ Runners: `esdm-2-nimbus/scripts/conformance.ts` · `esdm-2-symfony/scripts/confo
    explicitly — never use your repo's own example copy, they drift).
 3. **Boot** the emitted compose with only the `api` service published, on a
    host port that cannot collide with dev stacks or other runners
-   (nimbus 1811x, symfony 1812x, python 1813x). Ready when
+   (nimbus 1811x, symfony 1812x, python 1813x, opencqrs 1814x). Ready when
    `GET /_dev/catalog` returns 200 (timeout 300 s). Tear down (`down -v`) after.
 4. **Steps**, in order:
    - POST step: resolve `$NAME` placeholders from captures, send JSON, record
