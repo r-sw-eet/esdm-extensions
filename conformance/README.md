@@ -15,6 +15,12 @@ conformance/
   golden/<app>.observations.json  # the normative answers (recorded by the oracle runner)
 ```
 
+**A scenario belongs here only if its `model:` resolves inside a public repo of the
+family.** A scenario is a domain surface written out in full - endpoints, payloads and
+recorded responses - so one pointing at a private model publishes that domain while
+staying unrunnable for everyone else. Keep private models and their scenarios in their
+own repo.
+
 Runners: `esdm-2-nimbus/scripts/conformance.ts` · `esdm-2-symfony/scripts/conformance.php`
 (the oracle — carries `--record`) · `esdm-2-python/scripts/conformance-c4.py` ·
 `esdm-2-opencqrs/scripts/conformance.sh`.
