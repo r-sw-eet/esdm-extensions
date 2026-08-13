@@ -1,307 +1,331 @@
 {
-  "steps": [
-    {
-      "step": "submit-r1",
-      "endpoint": "POST intake/submit-request",
-      "status": 200,
-      "body": {
-        "id": "\u00abR1\u00bb"
-      }
-    },
-    {
-      "step": "quote-q1-drafted",
-      "endpoint": "GET quoting/list-quotes",
-      "status": 200,
-      "body": [
+    "steps": [
         {
-          "id": "\u00abQ1\u00bb",
-          "requestId": "\u00abR1\u00bb",
-          "amount": 0,
-          "currency": "EUR",
-          "status": "drafted",
-          "validUntil": ""
+            "step": "submit-r1",
+            "endpoint": "POST intake/submit-request",
+            "status": 200,
+            "body": {
+                "id": "«R1»"
+            }
+        },
+        {
+            "step": "quote-q1-drafted",
+            "endpoint": "GET quoting/list-quotes",
+            "status": 200,
+            "body": [
+                {
+                    "id": "«Q1»",
+                    "requestId": "«R1»",
+                    "customerName": "Ada Lovelace",
+                    "product": "flux capacitor",
+                    "quantity": 3,
+                    "amount": 0,
+                    "currency": "EUR",
+                    "status": "drafted",
+                    "validUntil": ""
+                }
+            ]
+        },
+        {
+            "step": "price-q1",
+            "endpoint": "POST quoting/price-quote",
+            "status": 200,
+            "body": {
+                "id": "«Q1»"
+            }
+        },
+        {
+            "step": "send-q1",
+            "endpoint": "POST quoting/send-quote",
+            "status": 200,
+            "body": {
+                "id": "«Q1»"
+            }
+        },
+        {
+            "step": "accept-q1",
+            "endpoint": "POST quoting/accept-quote",
+            "status": 200,
+            "body": {
+                "id": "«Q1»"
+            }
+        },
+        {
+            "step": "submit-r2",
+            "endpoint": "POST intake/submit-request",
+            "status": 200,
+            "body": {
+                "id": "«R2»"
+            }
+        },
+        {
+            "step": "quote-q2-drafted",
+            "endpoint": "GET quoting/list-quotes",
+            "status": 200,
+            "body": [
+                {
+                    "id": "«Q2»",
+                    "requestId": "«R2»",
+                    "customerName": "Grace Hopper",
+                    "product": "compiler",
+                    "quantity": 1,
+                    "amount": 0,
+                    "currency": "EUR",
+                    "status": "drafted",
+                    "validUntil": ""
+                },
+                {
+                    "id": "«Q1»",
+                    "requestId": "«R1»",
+                    "customerName": "Ada Lovelace",
+                    "product": "flux capacitor",
+                    "quantity": 3,
+                    "amount": 4200,
+                    "currency": "EUR",
+                    "status": "accepted",
+                    "validUntil": "2033-01-01"
+                }
+            ]
+        },
+        {
+            "step": "price-q2-expired",
+            "endpoint": "POST quoting/price-quote",
+            "status": 200,
+            "body": {
+                "id": "«Q2»"
+            }
+        },
+        {
+            "step": "send-q2",
+            "endpoint": "POST quoting/send-quote",
+            "status": 200,
+            "body": {
+                "id": "«Q2»"
+            }
+        },
+        {
+            "step": "accept-expired",
+            "endpoint": "POST quoting/accept-quote",
+            "status": 409,
+            "body": {
+                "error": "CONFLICT",
+                "message": "accept-quote requires: validUntil >= today()",
+                "details": {
+                    "errorCode": "GUARD_VIOLATION",
+                    "command": "accept-quote"
+                }
+            }
+        },
+        {
+            "step": "reject-q2",
+            "endpoint": "POST quoting/reject-quote",
+            "status": 200,
+            "body": {
+                "id": "«Q2»"
+            }
+        },
+        {
+            "step": "withdraw-r2",
+            "endpoint": "POST intake/withdraw-request",
+            "status": 200,
+            "body": {
+                "id": "«R2»"
+            }
         }
-      ]
-    },
-    {
-      "step": "price-q1",
-      "endpoint": "POST quoting/price-quote",
-      "status": 200,
-      "body": {
-        "id": "\u00abQ1\u00bb"
-      }
-    },
-    {
-      "step": "send-q1",
-      "endpoint": "POST quoting/send-quote",
-      "status": 200,
-      "body": {
-        "id": "\u00abQ1\u00bb"
-      }
-    },
-    {
-      "step": "accept-q1",
-      "endpoint": "POST quoting/accept-quote",
-      "status": 200,
-      "body": {
-        "id": "\u00abQ1\u00bb"
-      }
-    },
-    {
-      "step": "submit-r2",
-      "endpoint": "POST intake/submit-request",
-      "status": 200,
-      "body": {
-        "id": "\u00abR2\u00bb"
-      }
-    },
-    {
-      "step": "quote-q2-drafted",
-      "endpoint": "GET quoting/list-quotes",
-      "status": 200,
-      "body": [
+    ],
+    "checkpoints": [
         {
-          "id": "\u00abQ2\u00bb",
-          "requestId": "\u00abR2\u00bb",
-          "amount": 0,
-          "currency": "EUR",
-          "status": "drafted",
-          "validUntil": ""
+            "checkpoint": "list-requests",
+            "endpoint": "GET intake/list-requests",
+            "status": 200,
+            "body": [
+                {
+                    "id": "«R1»",
+                    "customerName": "Ada Lovelace",
+                    "customerEmail": "ada@acme.test",
+                    "product": "flux capacitor",
+                    "quantity": 3
+                }
+            ]
         },
         {
-          "id": "\u00abQ1\u00bb",
-          "requestId": "\u00abR1\u00bb",
-          "amount": 4200,
-          "currency": "EUR",
-          "status": "accepted",
-          "validUntil": "2033-01-01"
+            "checkpoint": "list-quotes",
+            "endpoint": "GET quoting/list-quotes",
+            "status": 200,
+            "body": [
+                {
+                    "id": "«Q1»",
+                    "requestId": "«R1»",
+                    "customerName": "Ada Lovelace",
+                    "product": "flux capacitor",
+                    "quantity": 3,
+                    "amount": 4200,
+                    "currency": "EUR",
+                    "status": "accepted",
+                    "validUntil": "2033-01-01"
+                },
+                {
+                    "id": "«Q2»",
+                    "requestId": "«R2»",
+                    "customerName": "Grace Hopper",
+                    "product": "compiler",
+                    "quantity": 1,
+                    "amount": 999,
+                    "currency": "EUR",
+                    "status": "rejected",
+                    "validUntil": "2020-01-01"
+                }
+            ]
+        },
+        {
+            "checkpoint": "get-q1",
+            "endpoint": "GET quoting/get-quote?id=$Q1",
+            "status": 200,
+            "body": {
+                "id": "«Q1»",
+                "requestId": "«R1»",
+                "customerName": "Ada Lovelace",
+                "product": "flux capacitor",
+                "quantity": 3,
+                "amount": 4200,
+                "currency": "EUR",
+                "status": "accepted",
+                "validUntil": "2033-01-01"
+            }
+        },
+        {
+            "checkpoint": "events",
+            "endpoint": "GET _dev/events",
+            "status": 200,
+            "body": [
+                {
+                    "aggregate": "request",
+                    "aggregateId": "«R2»",
+                    "event": "request-withdrawn",
+                    "playhead": 2,
+                    "payload": {
+                        "id": "«R2»"
+                    }
+                },
+                {
+                    "aggregate": "quote",
+                    "aggregateId": "«Q2»",
+                    "event": "quote-rejected",
+                    "playhead": 4,
+                    "payload": {
+                        "id": "«Q2»",
+                        "status": "rejected"
+                    }
+                },
+                {
+                    "aggregate": "quote",
+                    "aggregateId": "«Q2»",
+                    "event": "quote-sent",
+                    "playhead": 3,
+                    "payload": {
+                        "id": "«Q2»",
+                        "status": "sent"
+                    }
+                },
+                {
+                    "aggregate": "quote",
+                    "aggregateId": "«Q2»",
+                    "event": "quote-priced",
+                    "playhead": 2,
+                    "payload": {
+                        "id": "«Q2»",
+                        "amount": 999,
+                        "currency": "EUR",
+                        "validUntil": "2020-01-01"
+                    }
+                },
+                {
+                    "aggregate": "quote",
+                    "aggregateId": "«Q2»",
+                    "event": "quote-drafted",
+                    "playhead": 1,
+                    "payload": {
+                        "id": "«Q2»",
+                        "requestId": "«R2»",
+                        "customerName": "Grace Hopper",
+                        "product": "compiler",
+                        "quantity": 1,
+                        "status": "drafted"
+                    }
+                },
+                {
+                    "aggregate": "request",
+                    "aggregateId": "«R2»",
+                    "event": "request-submitted",
+                    "playhead": 1,
+                    "payload": {
+                        "id": "«R2»",
+                        "customerName": "Grace Hopper",
+                        "customerEmail": "grace@acme.test",
+                        "product": "compiler",
+                        "quantity": 1
+                    }
+                },
+                {
+                    "aggregate": "quote",
+                    "aggregateId": "«Q1»",
+                    "event": "quote-accepted",
+                    "playhead": 4,
+                    "payload": {
+                        "id": "«Q1»",
+                        "status": "accepted"
+                    }
+                },
+                {
+                    "aggregate": "quote",
+                    "aggregateId": "«Q1»",
+                    "event": "quote-sent",
+                    "playhead": 3,
+                    "payload": {
+                        "id": "«Q1»",
+                        "status": "sent"
+                    }
+                },
+                {
+                    "aggregate": "quote",
+                    "aggregateId": "«Q1»",
+                    "event": "quote-priced",
+                    "playhead": 2,
+                    "payload": {
+                        "id": "«Q1»",
+                        "amount": 4200,
+                        "currency": "EUR",
+                        "validUntil": "2033-01-01"
+                    }
+                },
+                {
+                    "aggregate": "quote",
+                    "aggregateId": "«Q1»",
+                    "event": "quote-drafted",
+                    "playhead": 1,
+                    "payload": {
+                        "id": "«Q1»",
+                        "requestId": "«R1»",
+                        "customerName": "Ada Lovelace",
+                        "product": "flux capacitor",
+                        "quantity": 3,
+                        "status": "drafted"
+                    }
+                },
+                {
+                    "aggregate": "request",
+                    "aggregateId": "«R1»",
+                    "event": "request-submitted",
+                    "playhead": 1,
+                    "payload": {
+                        "id": "«R1»",
+                        "customerName": "Ada Lovelace",
+                        "customerEmail": "ada@acme.test",
+                        "product": "flux capacitor",
+                        "quantity": 3
+                    }
+                }
+            ]
         }
-      ]
-    },
-    {
-      "step": "price-q2-expired",
-      "endpoint": "POST quoting/price-quote",
-      "status": 200,
-      "body": {
-        "id": "\u00abQ2\u00bb"
-      }
-    },
-    {
-      "step": "send-q2",
-      "endpoint": "POST quoting/send-quote",
-      "status": 200,
-      "body": {
-        "id": "\u00abQ2\u00bb"
-      }
-    },
-    {
-      "step": "accept-expired",
-      "endpoint": "POST quoting/accept-quote",
-      "status": 409,
-      "body": {
-        "error": "CONFLICT",
-        "message": "accept-quote requires: validUntil >= today()",
-        "details": {
-          "errorCode": "GUARD_VIOLATION",
-          "command": "accept-quote"
-        }
-      }
-    },
-    {
-      "step": "reject-q2",
-      "endpoint": "POST quoting/reject-quote",
-      "status": 200,
-      "body": {
-        "id": "\u00abQ2\u00bb"
-      }
-    },
-    {
-      "step": "withdraw-r2",
-      "endpoint": "POST intake/withdraw-request",
-      "status": 200,
-      "body": {
-        "id": "\u00abR2\u00bb"
-      }
-    }
-  ],
-  "checkpoints": [
-    {
-      "checkpoint": "list-requests",
-      "endpoint": "GET intake/list-requests",
-      "status": 200,
-      "body": [
-        {
-          "id": "\u00abR1\u00bb",
-          "customerName": "Ada Lovelace",
-          "customerEmail": "ada@acme.test",
-          "product": "flux capacitor",
-          "quantity": 3
-        }
-      ]
-    },
-    {
-      "checkpoint": "list-quotes",
-      "endpoint": "GET quoting/list-quotes",
-      "status": 200,
-      "body": [
-        {
-          "id": "\u00abQ1\u00bb",
-          "requestId": "\u00abR1\u00bb",
-          "amount": 4200,
-          "currency": "EUR",
-          "status": "accepted",
-          "validUntil": "2033-01-01"
-        },
-        {
-          "id": "\u00abQ2\u00bb",
-          "requestId": "\u00abR2\u00bb",
-          "amount": 999,
-          "currency": "EUR",
-          "status": "rejected",
-          "validUntil": "2020-01-01"
-        }
-      ]
-    },
-    {
-      "checkpoint": "get-q1",
-      "endpoint": "GET quoting/get-quote?id=$Q1",
-      "status": 200,
-      "body": {
-        "id": "\u00abQ1\u00bb",
-        "requestId": "\u00abR1\u00bb",
-        "amount": 4200,
-        "currency": "EUR",
-        "status": "accepted",
-        "validUntil": "2033-01-01"
-      }
-    },
-    {
-      "checkpoint": "events",
-      "endpoint": "GET _dev/events",
-      "status": 200,
-      "body": [
-        {
-          "aggregate": "request",
-          "aggregateId": "\u00abR2\u00bb",
-          "event": "request-withdrawn",
-          "playhead": 2,
-          "payload": {
-            "id": "\u00abR2\u00bb"
-          }
-        },
-        {
-          "aggregate": "quote",
-          "aggregateId": "\u00abQ2\u00bb",
-          "event": "quote-rejected",
-          "playhead": 4,
-          "payload": {
-            "id": "\u00abQ2\u00bb",
-            "status": "rejected"
-          }
-        },
-        {
-          "aggregate": "quote",
-          "aggregateId": "\u00abQ2\u00bb",
-          "event": "quote-sent",
-          "playhead": 3,
-          "payload": {
-            "id": "\u00abQ2\u00bb",
-            "status": "sent"
-          }
-        },
-        {
-          "aggregate": "quote",
-          "aggregateId": "\u00abQ2\u00bb",
-          "event": "quote-priced",
-          "playhead": 2,
-          "payload": {
-            "id": "\u00abQ2\u00bb",
-            "amount": 999,
-            "currency": "EUR",
-            "validUntil": "2020-01-01"
-          }
-        },
-        {
-          "aggregate": "quote",
-          "aggregateId": "\u00abQ2\u00bb",
-          "event": "quote-drafted",
-          "playhead": 1,
-          "payload": {
-            "id": "\u00abQ2\u00bb",
-            "requestId": "\u00abR2\u00bb",
-            "status": "drafted"
-          }
-        },
-        {
-          "aggregate": "request",
-          "aggregateId": "\u00abR2\u00bb",
-          "event": "request-submitted",
-          "playhead": 1,
-          "payload": {
-            "id": "\u00abR2\u00bb",
-            "customerName": "Grace Hopper",
-            "customerEmail": "grace@acme.test",
-            "product": "compiler",
-            "quantity": 1
-          }
-        },
-        {
-          "aggregate": "quote",
-          "aggregateId": "\u00abQ1\u00bb",
-          "event": "quote-accepted",
-          "playhead": 4,
-          "payload": {
-            "id": "\u00abQ1\u00bb",
-            "status": "accepted"
-          }
-        },
-        {
-          "aggregate": "quote",
-          "aggregateId": "\u00abQ1\u00bb",
-          "event": "quote-sent",
-          "playhead": 3,
-          "payload": {
-            "id": "\u00abQ1\u00bb",
-            "status": "sent"
-          }
-        },
-        {
-          "aggregate": "quote",
-          "aggregateId": "\u00abQ1\u00bb",
-          "event": "quote-priced",
-          "playhead": 2,
-          "payload": {
-            "id": "\u00abQ1\u00bb",
-            "amount": 4200,
-            "currency": "EUR",
-            "validUntil": "2033-01-01"
-          }
-        },
-        {
-          "aggregate": "quote",
-          "aggregateId": "\u00abQ1\u00bb",
-          "event": "quote-drafted",
-          "playhead": 1,
-          "payload": {
-            "id": "\u00abQ1\u00bb",
-            "requestId": "\u00abR1\u00bb",
-            "status": "drafted"
-          }
-        },
-        {
-          "aggregate": "request",
-          "aggregateId": "\u00abR1\u00bb",
-          "event": "request-submitted",
-          "playhead": 1,
-          "payload": {
-            "id": "\u00abR1\u00bb",
-            "customerName": "Ada Lovelace",
-            "customerEmail": "ada@acme.test",
-            "product": "flux capacitor",
-            "quantity": 3
-          }
-        }
-      ]
-    }
-  ]
+    ]
 }
