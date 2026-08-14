@@ -116,6 +116,8 @@ accepts without reading a generator.
 | `qty between 1 and 10` · `qty in [1..10]` | both desugar to two comparisons |
 | `amount + 1` · `amount * qty` · `total / count` | arithmetic, per the amendment below |
 | `if qty > 1 then "bulk" else "single"` | conditional, lowest precedence |
+| `date("2026-01-01")` · `validUntil + duration("P14D")` | temporal, at last |
+| `starts with(s, "x")` · `ends with(s, "x")` · `contains(s, "en")` | string functions |
 
 **Not live, though small and worth having** - in rough order of cost:
 
@@ -123,16 +125,18 @@ accepts without reading a generator.
 |---|---|---|
 | `customer.name` | rejected, no `.` token | nested payloads are ordinary |
 
-**Blocked on one thing.** All of these fail for the same reason - the AST's call node carries a
-function name and **no arguments**, so any call taking one is unrepresentable:
+**Still blocked, and no longer for the reason this document gave.** Call arguments landed on
+2026-08-14, which unblocked `date`, `duration` and the string functions. What remains needs
+something else entirely:
 
-`date("2026-01-01")` · `duration("P14D")` · `count(items)` · `sum(items)` ·
-`starts with(s, "x")` · `contains(s, "en")` · `every i in items satisfies …` ·
-`some i in items satisfies …` · `items[qty > 1]`
+`count(items)` · `sum(items)` · `every i in items satisfies …` · `some i in items satisfies …` ·
+`items[qty > 1]` · `customer.name`
 
-That single AST change unlocks all of them at once, including the temporal row this proposal has
-claimed since v1 and which has never been reachable: `validUntil + duration("P14D")` needs both a
-`+` token and call arguments.
+These are **model-layer** gaps, not parser gaps. A generator's field record keeps a name, a type
+string, `required` and `default`; an array's `items` and a nested object's `properties` are
+discarded at parse time. So there is nothing to bind an element or a sub-path to - and no example
+model declares a collection field in state or a payload, only in query result shapes. They need
+`Field` to carry element and nested types first, and a real model that wants them second.
 
 Anything not *live* is **rejected at parse time**, never silently miscompiled.
 
