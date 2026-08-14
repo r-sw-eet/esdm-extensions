@@ -159,9 +159,11 @@ agree, and a table is cheaper to agree on than four implementations.
 
 **All arithmetic evaluates in the real-number domain. Integer division must never occur.**
 
-This is not pedantry. In Java `7 / 2` on two `long` fields is `3`; in TypeScript it is `3.5`. A model
-that says `total / count` would then mean different things on different targets while every
-generator looked correct - the identical failure mode 0002 already documents for comparisons, where
+This is not pedantry, and it is measured rather than assumed: of the four implementation languages
+only Java divides integers as integers (`7 / 2` on two `long` fields is `3`, against `3.5`
+everywhere else - see the table below). A model that says `total / count` would then mean different
+things on different targets while every generator looked correct - the identical failure mode 0002
+already documents for comparisons, where
 `Objects.equals(Long, Integer)` silently answers false. The remedy is the same one the reference
 toolchain already applies to comparisons: **arithmetic compiles through the emitted per-target
 helper**, not to bare operators, so the coercion lives in one place per target and is testable
@@ -172,12 +174,50 @@ yields FEEL's `null`, and the two contexts differ deliberately: in a predicate, 
 a guard refuses; in a 0005 mapping, `null` must **not** be written into a command field - the
 reaction fails loudly and dispatches nothing.
 
-**Precision, stated honestly.** DMN specifies decimal arithmetic; all four reference targets use
-binary64. This amendment does **not** claim decimal semantics, because none of the four implement
-it. The consequence must be said plainly rather than discovered: *do not compute money in the
-model.* Keep monetary values in integer minor units, avoid division, and where rounding matters make
-it explicit in the domain instead of leaning on a float. A future amendment may add decimal
-semantics; it would need all four targets to change, not just this document.
+**Precision, and what actually goes wrong.** DMN specifies decimal arithmetic; all four reference
+targets use binary64. This amendment does **not** claim decimal semantics, because none of the four
+implement it. But the usual warning that follows - *don't compute money* - is too blunt, and the
+interesting part is which half of it survives measurement.
+
+**MEASURED (2026-08-14)**, the same expressions in all four implementation languages. Numeric
+semantics belong to the language rather than the target, so this is four rows and not eight:
+
+| | PHP | TypeScript | Python | Java |
+|---|---|---|---|---|
+| `0.1 + 0.2` | `0.30000000000000004` | `0.30000000000000004` | `0.30000000000000004` | `0.30000000000000004` |
+| `1234567 * 89` | `109876463` | `109876463` | `109876463` | `109876463` |
+| `7 / 2`, integer operands | `3.5` | `3.5` | `3.5` | **`3`** |
+| rendering of the value `93.0` | `93` | `93` | **`93.0`** | **`93.0`** |
+
+So **arithmetic does not diverge**: binary64 is deterministic, and identical inputs in identical
+order give identical bits in all four. Two things do diverge, and neither is the sum itself.
+
+The first is the integer division above, and it is a single-language problem with a single-language
+remedy: the Java target coerces before it divides, inside its emitted helper.
+
+**The second is rendering, and it splits two against two.** Java and Python print `93.0` where PHP and TypeScript
+print `93`, so a conformance golden recorded from one oracle would flag the others on a value that
+is numerically identical everywhere. This needs a rule, and it is not an arithmetic rule:
+
+> A field's declared type governs its emitted representation. A non-integral result assigned to a
+> field declared `integer` is a validation error, not a silent `93.0`.
+
+That leaves the ordinary float-money problem, which is not special to ESDM. It has the ordinary
+answer: **money in integer minor units**. In cents, `+`, `-` and `*` by an integer are *exact* in
+binary64 up to 2^53 - about nine hundred billion euro - so a model may compute money that way with
+no caveat at all.
+
+**Division is the real exclusion, and not because floats are frightening.** A money quotient needs a
+rounding rule - half-up, half-even, floor - and this subset cannot express one: `round(x, 2)` is a
+call with arguments, and the AST's call node carries none. So the rule is not "no money" but:
+
+> Do not divide money in the model until rounding can be stated. An unrounded monetary quotient is
+> wrong in every language equally.
+
+0005's own motivating example, `durationSeconds * rateCentsPerHour / 3600`, is exactly that case: the
+multiplication is exact and unproblematic, and it is the `/ 3600` that has no defensible answer here
+yet. A future amendment can add rounding (it needs call arguments) or decimal semantics (it needs
+all four targets to change), and either would lift this restriction.
 
 ### What the gate must additionally reject
 
@@ -187,8 +227,11 @@ Beyond the existing binding check, two rules the model already has the informati
    `data` is a validation error under an arithmetic operator. The model knows every field's type;
    this is the first place 0002 would use it.
 2. **A literal zero divisor** is a validation error, as above.
+3. **A division assigned to an `integer` field** is a validation error, because a quotient is not
+   generally integral and the two halves of the family render such a value differently (`93` against
+   `93.0`). Either the field is a `number`, or the expression is not a division.
 
-Both abort before the adapter, like every other gate.
+All three abort before the adapter, like every other gate.
 
 ### Still out of scope after this amendment
 
