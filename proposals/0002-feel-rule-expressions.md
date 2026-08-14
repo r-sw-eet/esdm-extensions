@@ -112,16 +112,15 @@ accepts without reading a generator.
 | `status = "sent"` · `amount = 12.5` · `a = true` · `a = null` | string, number, boolean and null literals |
 | `validUntil >= today()` · `now()` | clock, compiled to injected values |
 | `status in ["sent","draft"]` · `qty in [1,2,3]` | membership over a literal list |
+| `amount > -1` | negative literals |
+| `qty between 1 and 10` · `qty in [1..10]` | both desugar to two comparisons |
+| `amount + 1` · `amount * qty` · `total / count` | arithmetic, per the amendment below |
 
 **Not live, though small and worth having** - in rough order of cost:
 
 | Expression | What happens today | |
 |---|---|---|
-| `amount > -1` | rejected at the lexer | negative literals are unwritable at all: one token |
 | `customer.name` | rejected, no `.` token | nested payloads are ordinary |
-| `qty between 1 and 10` | rejected | sugar for two comparisons, and the most readable form for a domain expert |
-| `qty in [1..10]` | rejected, no `..` token | ranges |
-| `amount + 1` · `amount * qty` | rejected | the arithmetic amendment below |
 | `if qty > 1 then "bulk" else "single"` | rejected | real parser work, not a token |
 
 **Blocked on one thing.** All of these fail for the same reason - the AST's call node carries a
@@ -400,9 +399,13 @@ FEEL as a lexer / parser / compiler / model-aware validator:
   expressions of a reaction mapping. Extending the pipeline to `invariants` / `endsWhen` /
   `timers` is open, as are ranges (`[1..10]`), `if … then … else`, durations/date arithmetic and
   the collection quantifiers.
-- **Arithmetic (amendment 2026-08-14): specified, not implemented.** No parser accepts `+`, `-`,
-  `*`, `/` or a negative literal today; the amendment above says what they should mean and in what
-  order they bind. Nothing in the toolchain has changed yet.
+- **Arithmetic (amendment 2026-08-14): implemented in all four generators on the same day.**
+  Negative literals, `between` and ranges landed with it. Two implementation notes the amendment
+  called for and got: arithmetic compiles through each target's helper rather than to bare
+  operators, and a zero divisor yields NaN so that every comparison against it is false - which
+  also meant Java's ordering had to become a predicate, since one `int` from `compare()` cannot
+  make both directions false. The gate enforces both of the amendment's rules, using field types
+  the binder never previously had.
 
 ## Prior art
 

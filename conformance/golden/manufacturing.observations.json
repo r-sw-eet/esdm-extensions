@@ -109,7 +109,7 @@
             "status": 409,
             "body": {
                 "error": "CONFLICT",
-                "message": "accept-quote requires: validUntil >= today()",
+                "message": "accept-quote requires: validUntil >= today() and amount * quantity >= 5000",
                 "details": {
                     "errorCode": "GUARD_VIOLATION",
                     "command": "accept-quote"
