@@ -115,13 +115,13 @@ accepts without reading a generator.
 | `amount > -1` | negative literals |
 | `qty between 1 and 10` · `qty in [1..10]` | both desugar to two comparisons |
 | `amount + 1` · `amount * qty` · `total / count` | arithmetic, per the amendment below |
+| `if qty > 1 then "bulk" else "single"` | conditional, lowest precedence |
 
 **Not live, though small and worth having** - in rough order of cost:
 
 | Expression | What happens today | |
 |---|---|---|
 | `customer.name` | rejected, no `.` token | nested payloads are ordinary |
-| `if qty > 1 then "bulk" else "single"` | rejected | real parser work, not a token |
 
 **Blocked on one thing.** All of these fail for the same reason - the AST's call node carries a
 function name and **no arguments**, so any call taking one is unrepresentable:
