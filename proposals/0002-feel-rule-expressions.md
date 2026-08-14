@@ -95,35 +95,49 @@ ESDM's knowledge. Make it explicit one of two ways (both leave `esdm lint` green
 ### Supported FEEL subset (v1)
 
 The generator compiles a bounded subset — the regular-shaped ~80% that covers real invariants
-without becoming a general-purpose language:
+without becoming a general-purpose language.
 
-The **Status** column is not decoration: a reader has to be able to tell what a generator will
-accept without reading a generator. "live" is implemented in the reference toolchain and covered
-by its tests; "proposed" is specified here and rejected by every parser today.
+**Every row below was run through the reference parser on 2026-08-14**, and each is shown as an
+expression rather than a category, because a category hides the difference between "the parser
+takes this" and "the proposal wishes it did". A reader must be able to tell what a generator
+accepts without reading a generator.
 
-| Category            | Supported                                                                                     | Status                    |
-|---------------------|-----------------------------------------------------------------------------------------------|---------------------------|
-| comparison          | `=`, `!=`, `<`, `<=`, `>`, `>=`                                                               | live                      |
-| boolean             | `and`, `or`, `not(...)`                                                                       | live                      |
-| grouping            | `( … )`                                                                                        | live                      |
-| membership          | `x in ["a","b"]`                                                                               | live                      |
-| clock               | `today()`, `now()`                                                                             | live                      |
-| literals            | `"string"`, numbers, `true`/`false`, `null`                                                   | live (no negative literal) |
-| **arithmetic**      | `+`, `-`, `*`, `/`, unary `-`                                                                  | **proposed — see below**  |
-| ranges              | `x in [1..10]`                                                                                 | proposed                  |
-| conditional         | `if … then … else …`                                                                           | proposed                  |
-| temporal arithmetic | `duration("P14D")`, `date(...)`, date ± duration                                               | proposed — blocked        |
-| collections         | `every x in xs satisfies …`, `some x in xs satisfies …`, `count(xs[pred])`, `sum(xs[].field)` | proposed — blocked        |
-| access              | path `a.b`, list filter `xs[pred]`                                                             | proposed                  |
+**Live** - parses, binds, compiles:
 
-Anything outside the *live* rows is **rejected at parse time** — never silently miscompiled.
+| Expression | |
+|---|---|
+| `amount >= 100` · `status != "sent"` | the six comparisons |
+| `amount > 1 and status = "sent"` · `not(amount > 1)` | boolean |
+| `(a or b) and c` | grouping |
+| `status = "sent"` · `amount = 12.5` · `a = true` | string, number, boolean literals |
+| `validUntil >= today()` · `now()` | clock, compiled to injected values |
+| `status in ["sent","draft"]` · `qty in [1,2,3]` | membership over a literal list |
 
-**MEASURED (2026-08-14)**, against the reference parser: `amount * 2`, `a + b` and `-5` are all
-rejected at the lexer (`Unexpected character`), and so is `validUntil + duration("P14D")` — the
-temporal row has never been reachable, because there is no `+` token. `count(items[x > 1])` is
-rejected too: the AST's call node carries a function name and **no arguments**, so any call taking
-one is unrepresentable. Those two rows are marked *blocked* above: they need a change to the AST,
-not just to the lexer.
+**Not live, though small and worth having** - in rough order of cost:
+
+| Expression | What happens today | |
+|---|---|---|
+| `amount > -1` | rejected at the lexer | negative literals are unwritable at all: one token |
+| `a = null` | **parses, then binds wrong**: `unknown field "null"` | `null` lexes as an identifier, so the error blames the model for the parser's gap |
+| `customer.name` | rejected, no `.` token | nested payloads are ordinary |
+| `qty between 1 and 10` | rejected | sugar for two comparisons, and the most readable form for a domain expert |
+| `qty in [1..10]` | rejected, no `..` token | ranges |
+| `amount + 1` · `amount * qty` | rejected | the arithmetic amendment below |
+| `if qty > 1 then "bulk" else "single"` | rejected | real parser work, not a token |
+
+**Blocked on one thing.** All of these fail for the same reason - the AST's call node carries a
+function name and **no arguments**, so any call taking one is unrepresentable:
+
+`date("2026-01-01")` · `duration("P14D")` · `count(items)` · `sum(items)` ·
+`starts with(s, "x")` · `contains(s, "en")` · `every i in items satisfies …` ·
+`some i in items satisfies …` · `items[qty > 1]`
+
+That single AST change unlocks all of them at once, including the temporal row this proposal has
+claimed since v1 and which has never been reachable: `validUntil + duration("P14D")` needs both a
+`+` token and call arguments.
+
+Anything not *live* is **rejected at parse time**, never silently miscompiled. The one exception is
+`null`, which is not rejected but misattributed, and is a bug rather than a design.
 
 ## Amendment (2026-08-14): arithmetic
 
@@ -193,7 +207,23 @@ So **arithmetic does not diverge**: binary64 is deterministic, and identical inp
 order give identical bits in all four. Two things do diverge, and neither is the sum itself.
 
 The first is the integer division above, and it is a single-language problem with a single-language
-remedy: the Java target coerces before it divides, inside its emitted helper.
+remedy - but the remedy has to be placed carefully.
+
+**Where the coercion goes in Java.** Not `(double)` at each emission site: that is a cast a
+generator can forget at one call site out of twenty, and nothing would catch it. It goes in the
+emitted helper, exactly where comparisons already live for the same reason - `Guards.compare` and
+`Guards.equal` exist because Java has no operator that spans FEEL's comparisons, and Java has no
+operator that spans FEEL's division either. One place per target, tested there.
+
+**And the whole expression, not the division node.** `a * b / c` would otherwise multiply two longs
+and then divide two longs. So arithmetic evaluates in the double domain throughout, which means the
+result arrives as a double and must be **coerced to the field's declared type on assignment** - the
+same declared-type rule that settles the rendering split below, doing double duty.
+
+**The boundary, admitted rather than discovered.** Binary64 is exact to 2^53. Inside that, the four
+languages agree; outside it they genuinely differ, since Java `long` and Python `int` stay exact
+where TypeScript and PHP floats do not. A model is expected to stay inside, and nine quadrillion is
+a comfortable ceiling for quantities and for money in minor units alike.
 
 **The second is rendering, and it splits two against two.** Java and Python print `93.0` where PHP and TypeScript
 print `93`, so a conformance golden recorded from one oracle would flag the others on a value that
