@@ -109,7 +109,7 @@ accepts without reading a generator.
 | `amount >= 100` · `status != "sent"` | the six comparisons |
 | `amount > 1 and status = "sent"` · `not(amount > 1)` | boolean |
 | `(a or b) and c` | grouping |
-| `status = "sent"` · `amount = 12.5` · `a = true` | string, number, boolean literals |
+| `status = "sent"` · `amount = 12.5` · `a = true` · `a = null` | string, number, boolean and null literals |
 | `validUntil >= today()` · `now()` | clock, compiled to injected values |
 | `status in ["sent","draft"]` · `qty in [1,2,3]` | membership over a literal list |
 
@@ -118,7 +118,6 @@ accepts without reading a generator.
 | Expression | What happens today | |
 |---|---|---|
 | `amount > -1` | rejected at the lexer | negative literals are unwritable at all: one token |
-| `a = null` | **parses, then binds wrong**: `unknown field "null"` | `null` lexes as an identifier, so the error blames the model for the parser's gap |
 | `customer.name` | rejected, no `.` token | nested payloads are ordinary |
 | `qty between 1 and 10` | rejected | sugar for two comparisons, and the most readable form for a domain expert |
 | `qty in [1..10]` | rejected, no `..` token | ranges |
@@ -136,8 +135,13 @@ That single AST change unlocks all of them at once, including the temporal row t
 claimed since v1 and which has never been reachable: `validUntil + duration("P14D")` needs both a
 `+` token and call arguments.
 
-Anything not *live* is **rejected at parse time**, never silently miscompiled. The one exception is
-`null`, which is not rejected but misattributed, and is a bug rather than a design.
+Anything not *live* is **rejected at parse time**, never silently miscompiled.
+
+> `null` was in the broken list when this table was first measured: it lexed as an identifier, so
+> `a = null` parsed and then reported `unknown field "null"`, blaming the model for the parser's
+> omission. Fixed in all four generators on 2026-08-14, which also settled a semantic question the
+> bug had hidden - PHP's loose equality makes `0 == null` true, so a comparison against the null
+> literal compiles to identity there while everything else keeps loose equality.
 
 ## Amendment (2026-08-14): arithmetic
 
