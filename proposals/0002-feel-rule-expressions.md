@@ -118,6 +118,9 @@ accepts without reading a generator.
 | `if qty > 1 then "bulk" else "single"` | conditional, lowest precedence |
 | `date("2026-01-01")` · `validUntil + duration("P14D")` | temporal, at last |
 | `starts with(s, "x")` · `ends with(s, "x")` · `contains(s, "en")` | string functions |
+| `count(tags)` · `sum(amounts)` | collection functions |
+| `every t in tags satisfies t != ""` · `some …` | quantifiers, variable scoped to the predicate |
+| `customer.name` | path access |
 
 **Not live, though small and worth having** - in rough order of cost:
 
@@ -125,18 +128,16 @@ accepts without reading a generator.
 |---|---|---|
 | `customer.name` | rejected, no `.` token | nested payloads are ordinary |
 
-**Still blocked, and no longer for the reason this document gave.** Call arguments landed on
-2026-08-14, which unblocked `date`, `duration` and the string functions. What remains needs
-something else entirely:
+**What is left.** The model-layer gap this section used to describe was closed on 2026-08-14: a
+field now keeps an object's `properties` and an array's `items`, so `count`, `sum`, the quantifiers
+and `customer.name` all work. Two things remain out:
 
-`count(items)` · `sum(items)` · `every i in items satisfies …` · `some i in items satisfies …` ·
-`items[qty > 1]` · `customer.name`
-
-These are **model-layer** gaps, not parser gaps. A generator's field record keeps a name, a type
-string, `required` and `default`; an array's `items` and a nested object's `properties` are
-discarded at parse time. So there is nothing to bind an element or a sub-path to - and no example
-model declares a collection field in state or a payload, only in query result shapes. They need
-`Field` to carry element and nested types first, and a real model that wants them second.
+- **List filters** (`items[qty > 1]`). They need a filtered collection to be a value in its own
+  right, which only pays off alongside more collection functions than this subset has.
+- **A collection in a read model.** Evaluating one and *projecting* one are different capabilities:
+  the projector emits a scalar column, so an array field silently broke the projection when the
+  fixture first tried it. Nothing in these proposals claims it yet, and it is where the next real
+  work is.
 
 Anything not *live* is **rejected at parse time**, never silently miscompiled.
 

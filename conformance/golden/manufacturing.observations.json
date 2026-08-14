@@ -109,7 +109,7 @@
             "status": 409,
             "body": {
                 "error": "CONFLICT",
-                "message": "accept-quote requires: validUntil >= today() and (if quantity > 1 then amount * quantity >= 5000 else amount >= 99999)",
+                "message": "accept-quote requires: validUntil >= today() and count(tags) >= 1 and (if quantity > 1 then amount * quantity >= 5000 else amount >= 99999)",
                 "details": {
                     "errorCode": "GUARD_VIOLATION",
                     "command": "accept-quote"
@@ -250,6 +250,7 @@
                         "customerName": "Grace Hopper",
                         "product": "compiler",
                         "quantity": 1,
+                        "tags": [],
                         "status": "drafted"
                     }
                 },
@@ -263,7 +264,8 @@
                         "customerName": "Grace Hopper",
                         "customerEmail": "grace@acme.test",
                         "product": "compiler",
-                        "quantity": 1
+                        "quantity": 1,
+                        "tags": []
                     }
                 },
                 {
@@ -309,6 +311,9 @@
                         "customerName": "Ada Lovelace",
                         "product": "flux capacitor",
                         "quantity": 3,
+                        "tags": [
+                            "rush"
+                        ],
                         "status": "drafted"
                     }
                 },
@@ -322,7 +327,10 @@
                         "customerName": "Ada Lovelace",
                         "customerEmail": "ada@acme.test",
                         "product": "flux capacitor",
-                        "quantity": 3
+                        "quantity": 3,
+                        "tags": [
+                            "rush"
+                        ]
                     }
                 }
             ]

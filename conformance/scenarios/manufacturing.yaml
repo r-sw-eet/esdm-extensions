@@ -11,6 +11,8 @@
 # comes from the handled event's identity, and customerName / product / quantity
 # pass through by name. `customerEmail` is deliberately NOT a field of the command,
 # so a generator that copies the handled event wholesale fails here.
+# `tags` is the suite's only collection field: R1 has one and R2 none, so count(tags) >= 1
+# in the accept guard is what admits Q1 and would refuse Q2 even were it in date.
 # Not expressible in the model today and therefore not exercised: renames and
 # computed values — see proposals/0005-reaction-payload-mapping.md.
 app: manufacturing
@@ -23,7 +25,7 @@ targets: [symfony, symfony-esdb, nimbus, nimbus-postgres, python, python-esdb, o
 steps:
   - name: submit-r1
     post: intake/submit-request
-    body: { customerName: "Ada Lovelace", customerEmail: "ada@acme.test", product: "flux capacitor", quantity: 3 }
+    body: { customerName: "Ada Lovelace", customerEmail: "ada@acme.test", product: "flux capacitor", quantity: 3, tags: ["rush"] }
     capture: R1
   - name: quote-q1-drafted     # policy fires async: poll until the quote lands
     get: quoting/list-quotes
@@ -41,7 +43,7 @@ steps:
     body: { id: "$Q1" }
   - name: submit-r2
     post: intake/submit-request
-    body: { customerName: "Grace Hopper", customerEmail: "grace@acme.test", product: "compiler", quantity: 1 }
+    body: { customerName: "Grace Hopper", customerEmail: "grace@acme.test", product: "compiler", quantity: 1, tags: [] }
     capture: R2
   - name: quote-q2-drafted
     get: quoting/list-quotes
